@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 1. THE DATABASE CONTAINER
+  db:
+    image: mysql:8.0
+    container_name: mi_base_datos
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}        # Change this if your Java app uses a different password
+      MYSQL_DATABASE: ${DB_NAME} # Change this to the DB name your Java app expects
+    ports:
+      - "3307:3306"
+    volumes:
+      # MAGIC HAPPENS HERE: This tells Docker to look inside your "db" folder
+      # and run the init.sql file automatically when the database is created!
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  # 2. THE JAVA BACKEND CONTAINER
+  backend:
+    build: ./backend                   # Tells Docker to look in your "backend" folder for the Dockerfile
+    container_name: mi_servidor_java
+    ports:
+      - "8081:8080"                    # Remember? Port 8081 on your PC, 8080 inside Docker!
+    depends_on:
+      - db                             # Tells Docker to start the database FIRST, before Java
+    restart: always
